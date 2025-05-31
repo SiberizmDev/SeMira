@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "SeMira",
+    "slug": "semira",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0f8480ce-8e44-4feb-8016-1cd8a52511b2"
+      }
+    },
+    "android": {
+      "package": "com.nexa.semira"
+    },
+    "owner": "hackaroon"
+  }
+}
