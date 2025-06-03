@@ -1,192 +1,169 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { usePeriodContext } from '@/context/PeriodContext';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
-import { Clock, Calendar, Bell, CircleUser as UserCircle, ChevronRight, Trash2, Info, Shield } from 'lucide-react-native';
+import { useTheme } from '@/context/ThemeContext';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { Clock, Calendar, Bell, CircleUser as UserCircle, ChevronRight, Trash2, Info, Shield, Moon } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { userPreferences, setUserPreferences } = usePeriodContext();
+  const { colors, isDarkMode, toggleTheme } = useTheme();
   const [remindersEnabled, setRemindersEnabled] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   
   const handleCycleLengthPress = () => {
-    if (!userPreferences) return;
-    
-    Alert.prompt(
-      'Cycle Length',
-      'Enter your average cycle length in days:',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Save',
-          onPress: (value) => {
-            const cycleLength = parseInt(value || '28', 10);
-            if (cycleLength >= 21 && cycleLength <= 35) {
-              setUserPreferences({
-                ...userPreferences,
-                cycleLength,
-              });
-            } else {
-              Alert.alert('Invalid Value', 'Please enter a value between 21 and 35 days.');
-            }
-          },
-        },
-      ],
-      'plain-text',
-      userPreferences.cycleLength?.toString() || '28'
-    );
+    router.push('/cycle-length');
   };
   
   const handlePeriodDurationPress = () => {
-    if (!userPreferences) return;
-    
-    Alert.prompt(
-      'Period Duration',
-      'Enter your average period duration in days:',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Save',
-          onPress: (value) => {
-            const typicalDuration = parseInt(value || '5', 10);
-            if (typicalDuration >= 2 && typicalDuration <= 10) {
-              setUserPreferences({
-                ...userPreferences,
-                typicalDuration,
-              });
-            } else {
-              Alert.alert('Invalid Value', 'Please enter a value between 2 and 10 days.');
-            }
-          },
-        },
-      ],
-      'plain-text',
-      userPreferences.typicalDuration?.toString() || '5'
-    );
+    router.push('/period-duration');
   };
   
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Ayarlar</Text>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Döngü Ayarları</Text>
+    <ScrollView style={[styles.container, { backgroundColor: isDarkMode ? colors.background : colors.neutral.light }]}>
+      <View style={[styles.section, { backgroundColor: isDarkMode ? colors.card : colors.neutral.white }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Döngü Ayarları</Text>
         
         <TouchableOpacity 
-          style={styles.settingItem}
+          style={[styles.settingItem, { borderBottomColor: isDarkMode ? colors.neutral.dark : colors.neutral.medium }]}
           onPress={handleCycleLengthPress}
         >
-          <View style={styles.settingIconContainer}>
-            <Calendar size={20} color={COLORS.primary.main} />
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Calendar size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Döngü Uzunluğu</Text>
-            <Text style={styles.settingValue}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Döngü Uzunluğu</Text>
+            <Text style={[styles.settingValue, { color: colors.neutral.darkGray }]}>
               {userPreferences?.cycleLength || 28} gün
             </Text>
+            <Text style={[styles.settingDescription, { color: colors.neutral.darkGray }]}>
+              Ortalama adet döngünüzün uzunluğunu ayarlayın
+            </Text>
           </View>
-          <ChevronRight size={20} color={COLORS.neutral.gray} />
+          <ChevronRight size={20} color={isDarkMode ? colors.neutral.gray : colors.neutral.darkGray} />
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={styles.settingItem}
+          style={[styles.settingItem, { borderBottomColor: isDarkMode ? colors.neutral.dark : colors.neutral.medium }]}
           onPress={handlePeriodDurationPress}
         >
-          <View style={styles.settingIconContainer}>
-            <Clock size={20} color={COLORS.primary.main} />
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Clock size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Adet Süresi</Text>
-            <Text style={styles.settingValue}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Adet Süresi</Text>
+            <Text style={[styles.settingValue, { color: colors.neutral.darkGray }]}>
               {userPreferences?.typicalDuration || 5} gün
             </Text>
+            <Text style={[styles.settingDescription, { color: colors.neutral.darkGray }]}>
+              Ortalama adet sürenizi ayarlayın
+            </Text>
           </View>
-          <ChevronRight size={20} color={COLORS.neutral.gray} />
+          <ChevronRight size={20} color={isDarkMode ? colors.neutral.gray : colors.neutral.darkGray} />
         </TouchableOpacity>
       </View>
       
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bildirimler</Text>
+      <View style={[styles.section, { backgroundColor: isDarkMode ? colors.card : colors.neutral.white }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Uygulama Ayarları</Text>
         
-        <View style={styles.settingItem}>
-          <View style={styles.settingIconContainer}>
-            <Bell size={20} color={COLORS.primary.main} />
+        <TouchableOpacity 
+          style={[styles.settingItem, { borderBottomColor: isDarkMode ? colors.neutral.dark : colors.neutral.medium }]}
+          onPress={toggleTheme}
+        >
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Moon size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Adet Hatırlatıcıları</Text>
-            <Text style={styles.settingDescription}>
-              Adetin başlamadan önce bildirim al
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Karanlık Mod</Text>
+            <Text style={[styles.settingDescription, { color: colors.neutral.darkGray }]}>
+              Koyu renk temayı açıp kapatın
+            </Text>
+          </View>
+          <Switch
+            value={isDarkMode}
+            onValueChange={toggleTheme}
+            trackColor={{ false: isDarkMode ? colors.neutral.dark : colors.neutral.medium, true: colors.primary.main }}
+            thumbColor={colors.neutral.white}
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.settingItem, { borderBottomColor: isDarkMode ? colors.neutral.dark : colors.neutral.medium }]}
+        >
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Bell size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
+          </View>
+          <View style={styles.settingContent}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Bildirimler</Text>
+            <Text style={[styles.settingDescription, { color: colors.neutral.darkGray }]}>
+              Hatırlatıcıları ve bildirimleri yönetin
             </Text>
           </View>
           <Switch
             value={remindersEnabled}
             onValueChange={setRemindersEnabled}
-            trackColor={{ false: COLORS.neutral.medium, true: COLORS.primary.light }}
-            thumbColor={remindersEnabled ? COLORS.primary.main : COLORS.neutral.white}
+            trackColor={{ false: isDarkMode ? colors.neutral.dark : colors.neutral.medium, true: colors.primary.main }}
+            thumbColor={colors.neutral.white}
           />
-        </View>
+        </TouchableOpacity>
       </View>
       
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Uygulama Ayarları</Text>
+      <View style={[styles.section, { backgroundColor: isDarkMode ? colors.card : colors.neutral.white }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Uygulama Ayarları</Text>
         
         <View style={styles.settingItem}>
-          <View style={styles.settingIconContainer}>
-            <UserCircle size={20} color={COLORS.primary.main} />
+          <View style={[styles.settingIconContainer, { backgroundColor: colors.primary.light }]}>
+            <UserCircle size={20} color={colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Karanlık Mod</Text>
-            <Text style={styles.settingDescription}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Karanlık Mod</Text>
+            <Text style={[styles.settingDescription, { color: colors.neutral.darkGray }]}>
               Açık ve koyu tema arasında geçiş yap
             </Text>
           </View>
           <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
-            trackColor={{ false: COLORS.neutral.medium, true: COLORS.primary.light }}
-            thumbColor={darkMode ? COLORS.primary.main : COLORS.neutral.white}
+            value={isDarkMode}
+            onValueChange={toggleTheme}
+            trackColor={{ false: colors.neutral.medium, true: colors.primary.light }}
+            thumbColor={isDarkMode ? colors.primary.main : colors.neutral.white}
           />
         </View>
         
         <TouchableOpacity 
           style={styles.settingItem}
+          onPress={() => router.push('/privacy-policy')}
         >
-          <View style={styles.settingIconContainer}>
-            <Shield size={20} color={COLORS.primary.main} />
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Shield size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Gizlilik Politikası</Text>
-            <Text style={styles.settingDescription}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Gizlilik Politikası</Text>
+            <Text style={[styles.settingValue, { color: colors.neutral.darkGray }]}>
               Gizlilik politikamızı görüntüle
             </Text>
           </View>
-          <ChevronRight size={20} color={COLORS.neutral.gray} />
+          <ChevronRight size={20} color={isDarkMode ? colors.neutral.gray : colors.neutral.darkGray} />
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.settingItem}
+          onPress={() => router.push('/about')}
         >
-          <View style={styles.settingIconContainer}>
-            <Info size={20} color={COLORS.primary.main} />
+          <View style={[styles.settingIconContainer, { backgroundColor: isDarkMode ? colors.primary.dark : colors.primary.light }]}>
+            <Info size={20} color={isDarkMode ? colors.primary.light : colors.primary.main} />
           </View>
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Hakkında</Text>
-            <Text style={styles.settingDescription}>
-              Uygulama sürümü ve bilgi
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Hakkında</Text>
+            <Text style={[styles.settingValue, { color: colors.neutral.darkGray }]}>
+              Uygulama bilgileri ve sürüm
             </Text>
           </View>
-          <ChevronRight size={20} color={COLORS.neutral.gray} />
+          <ChevronRight size={20} color={isDarkMode ? colors.neutral.gray : colors.neutral.darkGray} />
         </TouchableOpacity>
       </View>
       
       <TouchableOpacity 
-        style={styles.dangerButton}
+        style={[styles.dangerButton, { backgroundColor: isDarkMode ? colors.card : colors.neutral.white }]}
         onPress={() => {
           Alert.alert(
             'Tüm Verileri Temizle',
@@ -207,11 +184,13 @@ export default function SettingsScreen() {
           );
         }}
       >
-        <Trash2 size={20} color={COLORS.error} style={styles.dangerIcon} />
-        <Text style={styles.dangerButtonText}>Tüm Verileri Temizle</Text>
+        <Trash2 size={20} color={colors.error} style={styles.dangerIcon} />
+        <Text style={[styles.dangerButtonText, { color: colors.error }]}>Tüm Verileri Temizle</Text>
       </TouchableOpacity>
       
-      <Text style={styles.versionText}>Sürüm 1.0.0</Text>
+      <Text style={[styles.versionText, { color: isDarkMode ? colors.neutral.gray : colors.neutral.darkGray }]}>
+        Sürüm 1.0.0
+      </Text>
     </ScrollView>
   );
 }
@@ -219,21 +198,18 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
     padding: SPACING.md,
   },
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
     marginBottom: SPACING.md,
   },
   section: {
     marginBottom: SPACING.lg,
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    shadowColor: COLORS.neutral.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -242,7 +218,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.sm,
   },
@@ -251,14 +226,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.neutral.light,
+    borderBottomColor: '#F0F0F0',
     paddingHorizontal: SPACING.sm,
   },
   settingIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary.light,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,
@@ -269,30 +243,26 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
   },
   settingValue: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.primary.main,
     marginTop: 2,
   },
   settingDescription: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
     marginTop: 2,
   },
   dangerButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     marginVertical: SPACING.lg,
     borderWidth: 1,
-    borderColor: COLORS.error,
+    borderColor: '#EF5350',
   },
   dangerIcon: {
     marginRight: SPACING.sm,
@@ -300,12 +270,10 @@ const styles = StyleSheet.create({
   dangerButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.error,
   },
   versionText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.gray,
     textAlign: 'center',
     marginBottom: SPACING.xl,
   },

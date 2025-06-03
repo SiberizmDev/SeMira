@@ -4,11 +4,24 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { PeriodRecord } from '@/types/period';
 import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme';
 import { CalendarDays } from 'lucide-react-native';
+import { tr } from 'date-fns/locale';
 
 interface HistoryCardProps {
   period: PeriodRecord;
   onPress: () => void;
 }
+
+const SYMPTOM_LABELS: Record<string, string> = {
+  cramps: 'Kramp',
+  headache: 'Baş ağrısı',
+  backache: 'Bel ağrısı',
+  nausea: 'Bulantı',
+  fatigue: 'Yorgunluk',
+  bloating: 'Şişkinlik',
+  'breast tenderness': 'Göğüs hassasiyeti',
+  'mood swings': 'Duygu değişimi',
+  none: 'Belirti yok',
+};
 
 export const HistoryCard: React.FC<HistoryCardProps> = ({ period, onPress }) => {
   const startDate = parseISO(period.startDate);
@@ -22,7 +35,7 @@ export const HistoryCard: React.FC<HistoryCardProps> = ({ period, onPress }) => 
   }
   
   const getFormattedDate = (date: Date) => {
-    return format(date, 'MMM d, yyyy');
+    return format(date, 'MMM d, yyyy', { locale: tr });
   };
   
   // Calculate most common symptoms
@@ -47,26 +60,22 @@ export const HistoryCard: React.FC<HistoryCardProps> = ({ period, onPress }) => 
           <CalendarDays size={16} color={COLORS.primary.main} style={styles.icon} />
           <Text style={styles.date}>{getFormattedDate(startDate)}</Text>
         </View>
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{duration} days</Text>
+        <View style={styles.badgeRow}>
+          <View style={[styles.durationBadge, period.isActive && styles.activeBorder]}>
+            <Text style={styles.durationText}>{duration} gün</Text>
+          </View>
         </View>
       </View>
       
       <View style={styles.detailsContainer}>
         {topSymptoms.length > 0 ? (
           <Text style={styles.symptomsText}>
-            Common symptoms: {topSymptoms.join(', ')}
+            Yaygın belirtiler: {topSymptoms.map(s => SYMPTOM_LABELS[s] || s).join(', ')}
           </Text>
         ) : (
-          <Text style={styles.symptomsText}>No symptoms recorded</Text>
+          <Text style={styles.symptomsText}>Belirti kaydı yok</Text>
         )}
       </View>
-      
-      {period.isActive && (
-        <View style={styles.activeBadge}>
-          <Text style={styles.activeText}>Active</Text>
-        </View>
-      )}
     </TouchableOpacity>
   );
 };
@@ -99,6 +108,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
   durationBadge: {
     backgroundColor: COLORS.primary.light,
     borderRadius: BORDER_RADIUS.round,
@@ -118,18 +132,8 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     color: COLORS.neutral.darkGray,
   },
-  activeBadge: {
-    position: 'absolute',
-    top: SPACING.sm,
-    right: SPACING.sm,
-    backgroundColor: COLORS.success,
-    borderRadius: BORDER_RADIUS.round,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-  },
-  activeText: {
-    fontFamily: FONT_FAMILY.medium,
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.neutral.white,
+  activeBorder: {
+    borderWidth: 2,
+    borderColor: COLORS.success,
   },
 });

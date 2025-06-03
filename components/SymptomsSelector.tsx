@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SymptomType } from '@/types/period';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SymptomsSelectorProps {
   selectedSymptoms: SymptomType[];
@@ -24,6 +25,8 @@ export const SymptomsSelector: React.FC<SymptomsSelectorProps> = ({
   selectedSymptoms,
   onSelectSymptom
 }) => {
+  const { colors } = useTheme();
+  
   const symptomNames: Record<SymptomType, string> = {
     'cramps': 'Kramp',
     'headache': 'Baş ağrısı',
@@ -61,7 +64,7 @@ export const SymptomsSelector: React.FC<SymptomsSelectorProps> = ({
   
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Belirtiler</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Belirtiler</Text>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -72,16 +75,16 @@ export const SymptomsSelector: React.FC<SymptomsSelectorProps> = ({
             key={symptom}
             style={[
               styles.symptomButton,
-              selectedSymptoms.includes(symptom) && styles.selectedSymptom
+              { backgroundColor: colors.neutral.light },
+              selectedSymptoms.includes(symptom) && { backgroundColor: colors.accent.light }
             ]}
             onPress={() => handleSymptomPress(symptom)}
           >
-            <Text 
-              style={[
-                styles.symptomText,
-                selectedSymptoms.includes(symptom) && styles.selectedSymptomText
-              ]}
-            >
+            <Text style={[
+              styles.symptomText,
+              { color: colors.text },
+              selectedSymptoms.includes(symptom) && { color: colors.accent.dark }
+            ]}>
               {symptomNames[symptom]}
             </Text>
           </TouchableOpacity>
@@ -98,33 +101,21 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.sm,
   },
   symptomsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
     paddingVertical: SPACING.xs,
   },
   symptomButton: {
-    backgroundColor: COLORS.neutral.light,
-    borderRadius: BORDER_RADIUS.round,
-    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    marginRight: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.neutral.medium,
-  },
-  selectedSymptom: {
-    backgroundColor: COLORS.primary.light,
-    borderColor: COLORS.primary.main,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.round,
   },
   symptomText: {
-    fontFamily: FONT_FAMILY.regular,
-    fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
-  },
-  selectedSymptomText: {
-    color: COLORS.primary.dark,
     fontFamily: FONT_FAMILY.medium,
+    fontSize: FONT_SIZE.sm,
   },
 });

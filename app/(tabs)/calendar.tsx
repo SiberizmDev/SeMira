@@ -1,18 +1,25 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { usePeriodContext } from '@/context/PeriodContext';
+import { useTheme } from '@/context/ThemeContext';
 import { PeriodCalendar } from '@/components/PeriodCalendar';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
 import { DateData } from 'react-native-calendars';
 import { format, parseISO } from 'date-fns';
 import { Info } from 'lucide-react-native';
+import { tr } from 'date-fns/locale';
+import { router } from 'expo-router';
 
 export default function CalendarScreen() {
   const { periods, currentPeriod } = usePeriodContext();
+  const { colors } = useTheme();
   const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
   
-  const handleDayPress = (date: DateData) => {
-    setSelectedDate(date.dateString);
+  const handleDayPress = (day: any) => {
+    router.push({
+      pathname: '/period-actions/details',
+      params: { date: day.dateString }
+    });
   };
   
   // Find log for the selected date if it exists
@@ -38,47 +45,48 @@ export default function CalendarScreen() {
   
   const renderSymptomsList = (symptoms: string[]) => {
     if (symptoms.length === 0 || (symptoms.length === 1 && symptoms[0] === 'none')) {
-      return <Text style={styles.noDataText}>No symptoms recorded</Text>;
+      return <Text style={[styles.noDataText, { color: colors.neutral.gray }]}>Belirti kaydı yok</Text>;
     }
     
     return symptoms.map((symptom, index) => {
       if (symptom === 'none') return null;
       
       return (
-        <View key={index} style={styles.symptomTag}>
-          <Text style={styles.symptomText}>{symptom}</Text>
+        <View key={index} style={[styles.symptomTag, { backgroundColor: colors.secondary.light }]}>
+          <Text style={[styles.symptomText, { color: colors.secondary.dark }]}>{symptom}</Text>
         </View>
       );
     });
   };
   
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Your Cycle Calendar</Text>
-      
-      <PeriodCalendar periods={periods} onDayPress={handleDayPress} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <PeriodCalendar 
+        periods={periods}
+        onDayPress={handleDayPress}
+      />
       
       {selectedDate && (
-        <View style={styles.dateInfoCard}>
-          <Text style={styles.dateTitle}>
-            {format(parseISO(selectedDate), 'MMMM d, yyyy')}
+        <View style={[styles.dateInfoCard, { 
+          backgroundColor: colors.neutral.white,
+          shadowColor: colors.neutral.black
+        }]}>
+          <Text style={[styles.dateTitle, { color: colors.primary.dark }]}>
+            {format(parseISO(selectedDate), 'dd MMMM yyyy', { locale: tr })}
           </Text>
           
           {selectedLog ? (
             <View style={styles.logDetails}>
               {selectedLog.isActive && (
-                <View style={styles.activeBadge}>
-                  <Text style={styles.activeBadgeText}>Active Period</Text>
+                <View style={[styles.activeBadge, { backgroundColor: colors.primary.light }]}>
+                  <Text style={[styles.activeBadgeText, { color: colors.primary.dark }]}>Aktif Adet</Text>
                 </View>
               )}
               
               {selectedLog.flow && (
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Flow:</Text>
-                  <Text style={[
-                    styles.detailValue,
-                    styles[`flow${selectedLog.flow.charAt(0).toUpperCase() + selectedLog.flow.slice(1)}`]
-                  ]}>
+                  <Text style={[styles.detailLabel, { color: colors.neutral.darkGray }]}>Akış:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
                     {selectedLog.flow.charAt(0).toUpperCase() + selectedLog.flow.slice(1)}
                   </Text>
                 </View>
@@ -86,15 +94,15 @@ export default function CalendarScreen() {
               
               {selectedLog.mood && (
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Mood:</Text>
-                  <Text style={styles.detailValue}>
+                  <Text style={[styles.detailLabel, { color: colors.neutral.darkGray }]}>Ruh Hali:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
                     {selectedLog.mood.charAt(0).toUpperCase() + selectedLog.mood.slice(1)}
                   </Text>
                 </View>
               )}
               
               <View style={styles.symptomsContainer}>
-                <Text style={styles.detailLabel}>Symptoms:</Text>
+                <Text style={[styles.detailLabel, { color: colors.neutral.darkGray }]}>Belirtiler:</Text>
                 <View style={styles.symptomsWrapper}>
                   {renderSymptomsList(selectedLog.symptoms)}
                 </View>
@@ -102,42 +110,33 @@ export default function CalendarScreen() {
               
               {selectedLog.notes && (
                 <View style={styles.notesContainer}>
-                  <Text style={styles.detailLabel}>Notes:</Text>
-                  <Text style={styles.notesText}>{selectedLog.notes}</Text>
+                  <Text style={[styles.detailLabel, { color: colors.neutral.darkGray }]}>Notlar:</Text>
+                  <Text style={[styles.notesText, { color: colors.text }]}>{selectedLog.notes}</Text>
                 </View>
               )}
             </View>
           ) : (
             <View style={styles.noDataContainer}>
-              <Info size={24} color={COLORS.neutral.gray} />
-              <Text style={styles.noDataText}>No data recorded for this date</Text>
+              <Info size={24} color={colors.neutral.gray} />
+              <Text style={[styles.noDataText, { color: colors.neutral.gray }]}>Bu tarih için veri yok</Text>
             </View>
           )}
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
     padding: SPACING.md,
   },
-  title: {
-    fontFamily: FONT_FAMILY.bold,
-    fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-  },
   dateInfoCard: {
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginTop: SPACING.md,
     marginBottom: SPACING.lg,
-    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -146,14 +145,12 @@ const styles = StyleSheet.create({
   dateTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.primary.dark,
     marginBottom: SPACING.md,
   },
   logDetails: {
     marginTop: SPACING.xs,
   },
   activeBadge: {
-    backgroundColor: COLORS.primary.light,
     borderRadius: BORDER_RADIUS.round,
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.md,
@@ -163,7 +160,6 @@ const styles = StyleSheet.create({
   activeBadgeText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.primary.dark,
   },
   detailRow: {
     flexDirection: 'row',
@@ -173,26 +169,12 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     marginRight: SPACING.sm,
     width: 80,
   },
   detailValue: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
-  },
-  flowLight: {
-    color: COLORS.primary.light,
-    fontFamily: FONT_FAMILY.medium,
-  },
-  flowMedium: {
-    color: COLORS.primary.main,
-    fontFamily: FONT_FAMILY.medium,
-  },
-  flowHeavy: {
-    color: COLORS.primary.dark,
-    fontFamily: FONT_FAMILY.semiBold,
   },
   symptomsContainer: {
     marginBottom: SPACING.sm,
@@ -203,7 +185,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   symptomTag: {
-    backgroundColor: COLORS.secondary.light,
     borderRadius: BORDER_RADIUS.round,
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
@@ -213,7 +194,6 @@ const styles = StyleSheet.create({
   symptomText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.secondary.dark,
   },
   notesContainer: {
     marginTop: SPACING.sm,
@@ -221,7 +201,6 @@ const styles = StyleSheet.create({
   notesText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginTop: SPACING.xs,
     fontStyle: 'italic',
   },
@@ -233,7 +212,6 @@ const styles = StyleSheet.create({
   noDataText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.gray,
     marginTop: SPACING.sm,
     textAlign: 'center',
   },

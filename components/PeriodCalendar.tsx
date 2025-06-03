@@ -1,101 +1,91 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars';
-import { PeriodRecord } from '@/types/period';
-import { format, parseISO, eachDayOfInterval } from 'date-fns';
-import { COLORS, FONT_FAMILY, SPACING, FONT_SIZE, BORDER_RADIUS } from '@/constants/theme';
+import { View, StyleSheet } from 'react-native';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { useTheme } from '@/context/ThemeContext';
+import { FONT_FAMILY } from '@/constants/theme';
+import { Period } from '@/types/period';
+
+// Takvim yerelleştirme ayarları
+LocaleConfig.locales['tr'] = {
+  monthNames: [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+  ],
+  monthNamesShort: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+  dayNames: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+  dayNamesShort: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'],
+  today: 'Bugün'
+};
+LocaleConfig.defaultLocale = 'tr';
 
 interface PeriodCalendarProps {
-  periods: PeriodRecord[];
-  onDayPress?: (date: DateData) => void;
+  periods: Period[];
+  onDayPress: (day: any) => void;
 }
 
 export const PeriodCalendar: React.FC<PeriodCalendarProps> = ({ periods, onDayPress }) => {
-  // Generate marked dates for calendar
+  const { colors, isDarkMode } = useTheme();
+  
   const getMarkedDates = () => {
-    const markedDates: Record<string, any> = {};
+    const markedDates: any = {};
     
     periods.forEach(period => {
-      if (!period.startDate) return;
-      
-      const startDate = parseISO(period.startDate);
-      let endDate;
-      
-      if (period.endDate) {
-        endDate = parseISO(period.endDate);
-      } else if (period.isActive) {
-        // If period is active and has no end date, use today as end date
-        endDate = new Date();
-      } else {
-        // If no end date and not active, just mark the start date
-        const dateString = format(startDate, 'yyyy-MM-dd');
-        markedDates[dateString] = {
-          selected: true,
-          selectedColor: COLORS.primary.main,
-        };
-        return;
-      }
-      
-      // Mark all days in the period
-      const periodDays = eachDayOfInterval({ start: startDate, end: endDate });
-      
-      periodDays.forEach((day, index) => {
-        const dateString = format(day, 'yyyy-MM-dd');
-        const isStart = index === 0;
-        const isEnd = index === periodDays.length - 1;
+      if (period.startDate && period.endDate) {
+        const start = new Date(period.startDate);
+        const end = new Date(period.endDate);
+        const dates = [];
         
-        if (isStart && isEnd) {
-          // Single day period
-          markedDates[dateString] = {
-            selected: true,
-            selectedColor: COLORS.primary.main,
-          };
-        } else if (isStart) {
-          // First day of period
-          markedDates[dateString] = {
-            startingDay: true,
-            color: COLORS.primary.main,
-            textColor: COLORS.neutral.white,
-          };
-        } else if (isEnd) {
-          // Last day of period
-          markedDates[dateString] = {
-            endingDay: true,
-            color: COLORS.primary.main,
-            textColor: COLORS.neutral.white,
-          };
-        } else {
-          // Middle day of period
-          markedDates[dateString] = {
-            color: COLORS.primary.light,
-            textColor: COLORS.primary.dark,
-          };
+        let currentDate = start;
+        while (currentDate <= end) {
+          dates.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate() + 1);
         }
-      });
+        
+        dates.forEach((date, index) => {
+          const dateString = date.toISOString().split('T')[0];
+          
+          if (index === 0) {
+            markedDates[dateString] = {
+              startingDay: true,
+              color: colors.primary.main,
+              textColor: colors.neutral.white,
+            };
+          } else if (index === dates.length - 1) {
+            markedDates[dateString] = {
+              endingDay: true,
+              color: colors.primary.main,
+              textColor: colors.neutral.white,
+            };
+          } else {
+            markedDates[dateString] = {
+              color: colors.primary.main,
+              textColor: colors.neutral.white,
+            };
+          }
+        });
+      }
     });
     
     return markedDates;
   };
   
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Period Calendar</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Calendar
-        style={styles.calendar}
+        style={[styles.calendar, { backgroundColor: isDarkMode ? colors.card : colors.neutral.white }]}
         theme={{
-          backgroundColor: COLORS.background,
-          calendarBackground: COLORS.background,
-          textSectionTitleColor: COLORS.neutral.darkGray,
-          selectedDayBackgroundColor: COLORS.primary.main,
-          selectedDayTextColor: COLORS.neutral.white,
-          todayTextColor: COLORS.primary.main,
-          dayTextColor: COLORS.text,
-          textDisabledColor: COLORS.neutral.gray,
-          dotColor: COLORS.primary.main,
-          selectedDotColor: COLORS.neutral.white,
-          arrowColor: COLORS.primary.main,
-          monthTextColor: COLORS.primary.dark,
-          indicatorColor: COLORS.primary.main,
+          calendarBackground: isDarkMode ? colors.card : colors.neutral.white,
+          monthTextColor: colors.text,
+          textSectionTitleColor: colors.text,
+          selectedDayBackgroundColor: colors.primary.main,
+          selectedDayTextColor: colors.neutral.white,
+          todayTextColor: colors.primary.main,
+          dayTextColor: colors.text,
+          textDisabledColor: isDarkMode ? colors.neutral.darkGray : colors.neutral.gray,
+          dotColor: colors.primary.main,
+          selectedDotColor: colors.neutral.white,
+          arrowColor: colors.primary.main,
+          indicatorColor: colors.primary.main,
           textDayFontFamily: FONT_FAMILY.regular,
           textMonthFontFamily: FONT_FAMILY.semiBold,
           textDayHeaderFontFamily: FONT_FAMILY.medium,
@@ -107,6 +97,7 @@ export const PeriodCalendar: React.FC<PeriodCalendarProps> = ({ periods, onDayPr
         markedDates={getMarkedDates()}
         onDayPress={onDayPress}
         enableSwipeMonths={true}
+        firstDay={1}
       />
     </View>
   );
@@ -114,16 +105,18 @@ export const PeriodCalendar: React.FC<PeriodCalendarProps> = ({ periods, onDayPr
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: SPACING.md,
-  },
-  title: {
-    fontFamily: FONT_FAMILY.semiBold,
-    fontSize: FONT_SIZE.lg,
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
   calendar: {
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 });

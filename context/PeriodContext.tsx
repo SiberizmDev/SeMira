@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PeriodRecord, DailyLog, UserPreferences, FlowLevel, MoodType, SymptomType } from '@/types/period';
 import { format } from 'date-fns';
+import * as Notifications from 'expo-notifications';
 
 interface PeriodContextType {
   // Data
@@ -87,6 +88,14 @@ export const PeriodProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     savePeriods();
   }, [periods, isLoading]);
 
+  // Android için kanal oluştur
+  useEffect(() => {
+    Notifications.setNotificationChannelAsync('period-channel', {
+      name: 'Adet Bildirimleri',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+  }, []);
+
   const startPeriod = async (initialLog: Partial<DailyLog>) => {
     const today = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
@@ -115,6 +124,14 @@ export const PeriodProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await AsyncStorage.setItem('periods', JSON.stringify([...periods, newPeriod]));
     } catch (error) {
       console.error('Error saving new period:', error);
+    }
+
+    await cancelAllPeriodNotifications();
+    scheduleDailyPeriodNotification();
+    if (userPreferences && userPreferences.cycleLength) {
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + userPreferences.cycleLength);
+      schedulePrePeriodNotification(nextDate);
     }
   };
   
@@ -153,6 +170,13 @@ export const PeriodProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ));
     } catch (error) {
       console.error('Error ending period:', error);
+    }
+
+    await cancelAllPeriodNotifications();
+    if (userPreferences && userPreferences.cycleLength) {
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + userPreferences.cycleLength);
+      schedulePrePeriodNotification(nextDate);
     }
   };
   
@@ -273,4 +297,36 @@ export const PeriodProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       {children}
     </PeriodContext.Provider>
   );
+};
+
+const schedulePrePeriodNotification = (nextDate: Date) => {
+  // 2 gün öncesine ayarla
+  const preDate = new Date(nextDate);
+  preDate.setDate(preDate.getDate() - 2);
+  preDate.setHours(10, 0, 0, 0);
+  const now = new Date();
+  const seconds = Math.floor((preDate.getTime() - now.getTime()) / 1000);
+  if (seconds > 0) {
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Adetin Yaklaşıyor',
+        body: 'Adetin başlamak üzere, kaydını yapmayı unutma!',
+      },
+      trigger: { type: 'timeInterval', seconds, repeats: false },
+      android: { channelId: 'period-channel' },
+    });
+  }
+};
+const scheduleDailyPeriodNotification = () => {
+  Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Günlük Kontrol',
+      body: 'Bugünkü adet kaydını yapmayı unutma!',
+    },
+    trigger: { type: 'calendar', hour: 10, minute: 0, repeats: true },
+    android: { channelId: 'period-channel' },
+  });
+};
+const cancelAllPeriodNotifications = async () => {
+  await Notifications.cancelAllScheduledNotificationsAsync();
 };

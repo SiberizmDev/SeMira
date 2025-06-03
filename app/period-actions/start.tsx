@@ -6,11 +6,13 @@ import { MoodSelector } from '@/components/MoodSelector';
 import { FlowSelector } from '@/components/FlowSelector';
 import { SymptomsSelector } from '@/components/SymptomsSelector';
 import { NotesInput } from '@/components/NotesInput';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
 import { MoodType, FlowLevel, SymptomType } from '@/types/period';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function StartPeriodScreen() {
   const { startPeriod } = usePeriodContext();
+  const { colors } = useTheme();
   const [mood, setMood] = useState<MoodType | undefined>(undefined);
   const [flow, setFlow] = useState<FlowLevel | undefined>(undefined);
   const [symptoms, setSymptoms] = useState<SymptomType[]>([]);
@@ -46,10 +48,10 @@ export default function StartPeriodScreen() {
   };
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Adet Takibini Başlat</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: colors.text }]}>Adet Takibini Başlat</Text>
+        <Text style={[styles.subtitle, { color: colors.neutral.darkGray }]}>
           Adetinin ilk gününde nasıl hissettiğini kaydedelim
         </Text>
         
@@ -69,17 +71,21 @@ export default function StartPeriodScreen() {
         />
         
         <TouchableOpacity 
-          style={styles.startButton} 
+          style={[styles.startButton, { backgroundColor: colors.primary.main }]} 
           onPress={handleStartPeriod}
         >
-          <Text style={styles.startButtonText}>Adeti Başlat</Text>
+          <Text style={[styles.startButtonText, { color: colors.neutral.white }]}>
+            Adeti Başlat
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.cancelButton} 
           onPress={() => router.back()}
         >
-          <Text style={styles.cancelButtonText}>İptal</Text>
+          <Text style={[styles.cancelButtonText, { color: colors.neutral.darkGray }]}>
+            İptal
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -89,7 +95,6 @@ export default function StartPeriodScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.lg,
@@ -97,17 +102,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   subtitle: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     marginBottom: SPACING.lg,
   },
   startButton: {
-    backgroundColor: COLORS.primary.main,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -116,7 +118,6 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.neutral.white,
   },
   cancelButton: {
     paddingVertical: SPACING.md,
@@ -126,6 +127,5 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
   },
 });

@@ -2,17 +2,45 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { usePeriodContext } from '@/context/PeriodContext';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { Calendar, Activity, ArrowLeft } from 'lucide-react-native';
+import { tr } from 'date-fns/locale';
+import { useTheme } from '@/context/ThemeContext';
 
 interface PeriodDetailsParams {
   id: string;
 }
 
+// Türkçe mappingler
+const FLOW_LABELS: Record<string, string> = {
+  light: 'Hafif',
+  medium: 'Orta',
+  heavy: 'Yoğun',
+};
+const MOOD_LABELS: Record<string, string> = {
+  happy: 'Mutlu',
+  neutral: 'Nötr',
+  sad: 'Üzgün',
+  irritable: 'Sinirli',
+  anxious: 'Endişeli',
+};
+const SYMPTOM_LABELS: Record<string, string> = {
+  cramps: 'Kramp',
+  headache: 'Baş ağrısı',
+  backache: 'Bel ağrısı',
+  nausea: 'Bulantı',
+  fatigue: 'Yorgunluk',
+  bloating: 'Şişkinlik',
+  'breast tenderness': 'Göğüs hassasiyeti',
+  'mood swings': 'Duygu değişimi',
+  none: 'Belirti yok',
+};
+
 export default function PeriodDetailsScreen() {
-  const { id } = useLocalSearchParams<PeriodDetailsParams>();
+  const { id } = useLocalSearchParams();
   const { periods } = usePeriodContext();
+  const { colors } = useTheme();
   
   const period = periods.find(p => p.id === id);
   
@@ -69,116 +97,114 @@ export default function PeriodDetailsScreen() {
     .sort((a, b) => b[1] - a[1]);
   
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color={COLORS.primary.main} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Period Details</Text>
-      </View>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+     ,
       
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
         <View style={styles.dateRow}>
-          <Calendar size={20} color={COLORS.primary.main} style={styles.icon} />
-          <Text style={styles.dateText}>
-            {format(startDate, 'MMMM d, yyyy')}
-            {period.endDate && ` - ${format(parseISO(period.endDate), 'MMMM d, yyyy')}`}
+          <Calendar size={20} color={colors.primary.main} style={styles.icon} />
+          <Text style={[styles.dateText, { color: colors.text }]}>
+            {format(startDate, 'MMMM d, yyyy', { locale: tr })}
+            {period.endDate && ` - ${format(parseISO(period.endDate), 'MMMM d, yyyy', { locale: tr })}`}
           </Text>
         </View>
         
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{duration} days</Text>
+        <View style={[styles.durationBadge, { backgroundColor: colors.primary.light }]}>
+          <Text style={[styles.durationText, { color: colors.primary.dark }]}>{duration} gün</Text>
         </View>
         
         {period.isActive && (
-          <View style={styles.activeBadge}>
-            <Text style={styles.activeText}>Currently Active</Text>
+          <View style={[styles.activeBadge, { backgroundColor: colors.success }]}>
+            <Text style={[styles.activeText, { color: colors.neutral.white }]}>Şu an Aktif</Text>
           </View>
         )}
       </View>
       
       <View style={styles.summarySection}>
-        <Text style={styles.sectionTitle}>Summary</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Özet</Text>
         
         <View style={styles.summaryGrid}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Duration</Text>
-            <Text style={styles.summaryValue}>{duration} days</Text>
+          <View style={[styles.summaryItem, { backgroundColor: colors.card }]}>
+            <Text style={[styles.summaryLabel, { color: colors.neutral.darkGray }]}>Süre</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>{duration} gün</Text>
           </View>
           
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Most Common Flow</Text>
+          <View style={[styles.summaryItem, { backgroundColor: colors.card }]}>
+            <Text style={[styles.summaryLabel, { color: colors.neutral.darkGray }]}>En Sık Akış</Text>
             <Text style={[
               styles.summaryValue,
-              flowEntries.length > 0 && styles[`flow${flowEntries[0][0].charAt(0).toUpperCase() + flowEntries[0][0].slice(1)}`]
+              { color: flowEntries.length > 0 ? colors.primary[flowEntries[0][0]] : colors.text }
             ]}>
               {flowEntries.length > 0 
-                ? flowEntries[0][0].charAt(0).toUpperCase() + flowEntries[0][0].slice(1)
-                : 'N/A'}
+                ? FLOW_LABELS[flowEntries[0][0]] || flowEntries[0][0]
+                : 'Yok'}
             </Text>
           </View>
           
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Most Common Mood</Text>
-            <Text style={styles.summaryValue}>
+          <View style={[styles.summaryItem, { backgroundColor: colors.card }]}>
+            <Text style={[styles.summaryLabel, { color: colors.neutral.darkGray }]}>En Sık Ruh Hali</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
               {moodEntries.length > 0 
-                ? moodEntries[0][0].charAt(0).toUpperCase() + moodEntries[0][0].slice(1)
-                : 'N/A'}
+                ? MOOD_LABELS[moodEntries[0][0]] || moodEntries[0][0]
+                : 'Yok'}
             </Text>
           </View>
           
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Days Logged</Text>
-            <Text style={styles.summaryValue}>{period.dailyLogs.length}</Text>
+          <View style={[styles.summaryItem, { backgroundColor: colors.card }]}>
+            <Text style={[styles.summaryLabel, { color: colors.neutral.darkGray }]}>Kayıtlı Gün</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>{period.dailyLogs.length}</Text>
           </View>
         </View>
       </View>
       
       <View style={styles.symptomsSection}>
-        <Text style={styles.sectionTitle}>Common Symptoms</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Yaygın Belirtiler</Text>
         
         {symptomEntries.length > 0 ? (
-          <View style={styles.symptomsContainer}>
+          <View style={[styles.symptomsContainer, { backgroundColor: colors.card }]}>
             {symptomEntries.map(([symptom, count]) => (
               <View key={symptom} style={styles.symptomItem}>
-                <View style={styles.symptomBar}>
+                <View style={[styles.symptomBar, { backgroundColor: colors.neutral.light }]}>
                   <View 
                     style={[
                       styles.symptomBarFill, 
-                      { width: `${(count / period.dailyLogs.length) * 100}%` }
+                      { 
+                        width: `${(count / period.dailyLogs.length) * 100}%`,
+                        backgroundColor: colors.primary.main
+                      }
                     ]} 
                   />
                 </View>
                 <View style={styles.symptomLabelContainer}>
-                  <Text style={styles.symptomLabel}>
-                    {symptom.charAt(0).toUpperCase() + symptom.slice(1)}
+                  <Text style={[styles.symptomLabel, { color: colors.text }]}>
+                    {SYMPTOM_LABELS[symptom] || symptom}
                   </Text>
-                  <Text style={styles.symptomCount}>
-                    {count} {count === 1 ? 'day' : 'days'}
+                  <Text style={[styles.symptomCount, { color: colors.neutral.darkGray }]}>
+                    {count} gün
                   </Text>
                 </View>
               </View>
             ))}
           </View>
         ) : (
-          <Text style={styles.noDataText}>No symptoms recorded</Text>
+          <Text style={[styles.noDataText, { color: colors.neutral.gray }]}>Belirti kaydı yok</Text>
         )}
       </View>
       
       <View style={styles.dailyLogsSection}>
-        <Text style={styles.sectionTitle}>Daily Logs</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Günlük Kayıtlar</Text>
         
         {period.dailyLogs.map((log) => (
-          <View key={log.date} style={styles.logItem}>
+          <View key={log.date} style={[styles.logItem, { backgroundColor: colors.card }]}>
             <View style={styles.logHeader}>
-              <Text style={styles.logDate}>{format(parseISO(log.date), 'MMM d')}</Text>
+              <Text style={[styles.logDate, { color: colors.text }]}>{format(parseISO(log.date), 'MMM d', { locale: tr })}</Text>
               {log.flow && (
                 <View style={[
                   styles.flowBadge,
-                  styles[`flowBadge${log.flow.charAt(0).toUpperCase() + log.flow.slice(1)}`]
+                  { backgroundColor: colors.primary[log.flow] }
                 ]}>
-                  <Text style={styles.flowBadgeText}>
-                    {log.flow.charAt(0).toUpperCase() + log.flow.slice(1)}
+                  <Text style={[styles.flowBadgeText, { color: colors.neutral.white }]}>
+                    {FLOW_LABELS[log.flow] || log.flow}
                   </Text>
                 </View>
               )}
@@ -186,19 +212,21 @@ export default function PeriodDetailsScreen() {
             
             <View style={styles.logDetails}>
               {log.mood && (
-                <Text style={styles.logDetailText}>
-                  Mood: {log.mood.charAt(0).toUpperCase() + log.mood.slice(1)}
+                <Text style={[styles.logDetailText, { color: colors.text }]}>
+                  Ruh Hali: {MOOD_LABELS[log.mood] || log.mood}
                 </Text>
               )}
               
               {log.symptoms && log.symptoms.length > 0 && log.symptoms[0] !== 'none' && (
-                <Text style={styles.logDetailText}>
-                  Symptoms: {log.symptoms.join(', ')}
+                <Text style={[styles.logDetailText, { color: colors.text }]}>
+                  Belirtiler: {log.symptoms.map(s => SYMPTOM_LABELS[s] || s).join(', ')}
                 </Text>
               )}
               
               {log.notes && (
-                <Text style={styles.logNotes}>"{log.notes}"</Text>
+                <Text style={[styles.logNotes, { color: colors.neutral.darkGray }]}>
+                  "{log.notes}"
+                </Text>
               )}
             </View>
           </View>
@@ -211,7 +239,6 @@ export default function PeriodDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -224,10 +251,8 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
   },
   card: {
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     margin: SPACING.md,
@@ -244,10 +269,8 @@ const styles = StyleSheet.create({
   dateText: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.text,
   },
   durationBadge: {
-    backgroundColor: COLORS.primary.light,
     borderRadius: BORDER_RADIUS.round,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
@@ -256,13 +279,11 @@ const styles = StyleSheet.create({
   durationText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.primary.dark,
   },
   activeBadge: {
     position: 'absolute',
     top: SPACING.md,
     right: SPACING.md,
-    backgroundColor: COLORS.success,
     borderRadius: BORDER_RADIUS.round,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
@@ -270,7 +291,6 @@ const styles = StyleSheet.create({
   activeText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.xs,
-    color: COLORS.neutral.white,
   },
   summarySection: {
     margin: SPACING.md,
@@ -278,7 +298,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.text,
     marginBottom: SPACING.md,
   },
   summaryGrid: {
@@ -288,7 +307,6 @@ const styles = StyleSheet.create({
   },
   summaryItem: {
     width: '48%',
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.md,
@@ -297,28 +315,16 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
     marginBottom: SPACING.xs,
   },
   summaryValue: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.text,
-  },
-  flowLight: {
-    color: COLORS.primary.light,
-  },
-  flowMedium: {
-    color: COLORS.primary.main,
-  },
-  flowHeavy: {
-    color: COLORS.primary.dark,
   },
   symptomsSection: {
     margin: SPACING.md,
   },
   symptomsContainer: {
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     ...SHADOWS.small,
@@ -328,13 +334,11 @@ const styles = StyleSheet.create({
   },
   symptomBar: {
     height: 10,
-    backgroundColor: COLORS.neutral.light,
     borderRadius: BORDER_RADIUS.round,
     overflow: 'hidden',
   },
   symptomBarFill: {
     height: '100%',
-    backgroundColor: COLORS.primary.main,
   },
   symptomLabelContainer: {
     flexDirection: 'row',
@@ -344,19 +348,16 @@ const styles = StyleSheet.create({
   symptomLabel: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.text,
   },
   symptomCount: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
   },
   dailyLogsSection: {
     margin: SPACING.md,
     marginBottom: SPACING.xl,
   },
   logItem: {
-    backgroundColor: COLORS.neutral.white,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.md,
@@ -371,26 +372,15 @@ const styles = StyleSheet.create({
   logDate: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
   },
   flowBadge: {
     borderRadius: BORDER_RADIUS.round,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
   },
-  flowBadgeLight: {
-    backgroundColor: COLORS.primary.light,
-  },
-  flowBadgeMedium: {
-    backgroundColor: COLORS.primary.main,
-  },
-  flowBadgeHeavy: {
-    backgroundColor: COLORS.primary.dark,
-  },
   flowBadgeText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.xs,
-    color: COLORS.neutral.white,
   },
   logDetails: {
     paddingTop: SPACING.xs,
@@ -398,20 +388,17 @@ const styles = StyleSheet.create({
   logDetailText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   logNotes: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     fontStyle: 'italic',
     marginTop: SPACING.xs,
   },
   noDataText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.gray,
     textAlign: 'center',
     padding: SPACING.lg,
   },

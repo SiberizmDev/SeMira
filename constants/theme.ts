@@ -1,8 +1,8 @@
 export const COLORS = {
   primary: {
-    light: '#F8BBD0', // Light Pink
-    main: '#EC407A', // Pink
-    dark: '#C2185B', // Dark Pink
+    light: '#FFE0EB', // Soft pink
+    main: '#D23F6F', // Deep rose pink
+    dark: '#A31545', // Rich burgundy pink
   },
   secondary: {
     light: '#D1C4E9', // Light Purple

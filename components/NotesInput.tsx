@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface NotesInputProps {
   value: string;
@@ -13,15 +14,24 @@ export const NotesInput: React.FC<NotesInputProps> = ({
   onChangeText,
   placeholder = 'Nasıl hissettiğinle ilgili not ekle...'
 }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notlar</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Notlar</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.neutral.light,
+            color: colors.text,
+            borderColor: colors.neutral.medium
+          }
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.neutral.gray}
+        placeholderTextColor={colors.neutral.gray}
         multiline
         numberOfLines={4}
         textAlignVertical="top"
@@ -37,18 +47,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.sm,
   },
   input: {
-    backgroundColor: COLORS.neutral.light,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.neutral.medium,
     minHeight: 100,
   },
 });

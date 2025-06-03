@@ -6,12 +6,15 @@ import { MoodSelector } from '@/components/MoodSelector';
 import { FlowSelector } from '@/components/FlowSelector';
 import { SymptomsSelector } from '@/components/SymptomsSelector';
 import { NotesInput } from '@/components/NotesInput';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
 import { MoodType, FlowLevel, SymptomType } from '@/types/period';
 import { format, parseISO, differenceInDays } from 'date-fns';
+import { tr } from 'date-fns/locale';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DailyCheckScreen() {
   const { currentPeriod, addDailyLog } = usePeriodContext();
+  const { colors } = useTheme();
   const [mood, setMood] = useState<MoodType | undefined>(undefined);
   const [flow, setFlow] = useState<FlowLevel | undefined>(undefined);
   const [symptoms, setSymptoms] = useState<SymptomType[]>([]);
@@ -37,7 +40,7 @@ export default function DailyCheckScreen() {
   
   const handleSaveLog = async () => {
     if (!flow) {
-      Alert.alert('Missing Information', 'Please select your flow level');
+      Alert.alert('Eksik Bilgi', 'Lütfen akış seviyenizi seçin');
       return;
     }
     
@@ -51,23 +54,25 @@ export default function DailyCheckScreen() {
       
       router.replace('/');
     } catch (error) {
-      console.error('Error adding daily log:', error);
-      Alert.alert('Error', 'There was an error saving your daily check-in');
+      console.error('Günlük kayıt eklenirken hata:', error);
+      Alert.alert('Hata', 'Günlük kontrolünüz kaydedilirken bir hata oluştu');
     }
   };
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Daily Check-in</Text>
-        <Text style={styles.subtitle}>
-          Day {dayCount} of your period
+        <Text style={[styles.title, { color: colors.text }]}>Günlük Kontrol</Text>
+        <Text style={[styles.subtitle, { color: colors.neutral.darkGray }]}>
+          {dayCount}. Gününüz
         </Text>
         
-        <View style={styles.dayCard}>
-          <Text style={styles.dayCardTitle}>Today, {format(today, 'MMMM d')}</Text>
-          <Text style={styles.dayCardText}>
-            How are you feeling today? Let's track your symptoms and flow.
+        <View style={[styles.dayCard, { backgroundColor: colors.primary.light }]}>
+          <Text style={[styles.dayCardTitle, { color: colors.primary.dark }]}>
+            Bugün, {format(today, 'MMMM d', { locale: tr })}
+          </Text>
+          <Text style={[styles.dayCardText, { color: colors.text }]}>
+            Bugün nasıl hissettiğinizi takip edelim.
           </Text>
         </View>
         
@@ -83,21 +88,25 @@ export default function DailyCheckScreen() {
         <NotesInput 
           value={notes} 
           onChangeText={setNotes} 
-          placeholder="Any additional notes about how you're feeling today?"
+          placeholder="Bugün nasıl hissettiğiniz hakkında ek notlarınız varsa buraya yazınız."
         />
         
         <TouchableOpacity 
-          style={styles.saveButton} 
+          style={[styles.saveButton, { backgroundColor: colors.primary.main }]} 
           onPress={handleSaveLog}
         >
-          <Text style={styles.saveButtonText}>Save Check-in</Text>
+          <Text style={[styles.saveButtonText, { color: colors.neutral.white }]}>
+            Kaydet
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.cancelButton} 
           onPress={() => router.back()}
         >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: colors.neutral.darkGray }]}>
+            İptal
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -107,7 +116,6 @@ export default function DailyCheckScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.lg,
@@ -115,17 +123,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   subtitle: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     marginBottom: SPACING.lg,
   },
   dayCard: {
-    backgroundColor: COLORS.primary.light,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.lg,
@@ -133,16 +138,13 @@ const styles = StyleSheet.create({
   dayCardTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.md,
-    color: COLORS.primary.dark,
     marginBottom: SPACING.xs,
   },
   dayCardText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
   },
   saveButton: {
-    backgroundColor: COLORS.primary.main,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -151,7 +153,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.neutral.white,
   },
   cancelButton: {
     paddingVertical: SPACING.md,
@@ -161,6 +162,5 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
   },
 });

@@ -1,5 +1,5 @@
 export type FlowLevel = 'light' | 'medium' | 'heavy';
-export type MoodType = 'happy' | 'neutral' | 'sad' | 'irritable' | 'anxious';
+export type MoodType = 'happy' | 'neutral' | 'sad' | 'angry' | 'energetic';
 export type SymptomType = 
   | 'cramps' 
   | 'headache' 
@@ -27,8 +27,23 @@ export interface PeriodRecord {
   dailyLogs: DailyLog[];
 }
 
+export interface Period {
+  id: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  symptoms?: string[];
+  notes?: string;
+  flow?: 'light' | 'medium' | 'heavy';
+  pain?: 'none' | 'mild' | 'moderate' | 'severe';
+  mood?: string[];
+}
+
 export interface UserPreferences {
-  typicalDuration: number; // In days
-  cycleLength?: number; // In days, optional
-  lastPeriodStart?: string; // ISO format date string, optional
+  cycleLength?: number;
+  typicalDuration?: number;
+  lastPeriodStart?: string;
+  lastPeriodEnd?: string;
+  notifications?: boolean;
+  darkMode?: boolean;
 }

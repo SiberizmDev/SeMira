@@ -2,7 +2,7 @@
   "expo": {
     "name": "SeMira",
     "slug": "semira",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -27,12 +27,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "0f8480ce-8e44-4feb-8016-1cd8a52511b2"
+        "projectId": "6b58b42e-c6d6-4cd7-bc10-a0057012fc0c"
       }
     },
     "android": {
       "package": "com.nexa.semira"
     },
-    "owner": "hackaroon"
+    "owner": "siberizm"
   }
 }

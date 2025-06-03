@@ -2,81 +2,74 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import { usePeriodContext } from '@/context/PeriodContext';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { Calendar, Bell } from 'lucide-react-native';
+import { tr } from 'date-fns/locale';
 
-export const PeriodStatusCard = ({ onStartPress, onEndPress }: { 
-  onStartPress: () => void; 
+interface PeriodStatusCardProps {
+  onStartPress: () => void;
   onEndPress: () => void;
+}
+
+export const PeriodStatusCard: React.FC<PeriodStatusCardProps> = ({
+  onStartPress,
+  onEndPress
 }) => {
   const { currentPeriod, periods, userPreferences } = usePeriodContext();
+  const { colors } = useTheme();
   
-  if (currentPeriod) {
-    // Active period
-    const startDate = parseISO(currentPeriod.startDate);
-    const today = new Date();
-    const dayCount = differenceInDays(today, startDate) + 1;
-    
+  if (!currentPeriod) {
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Period Active</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Day {dayCount}</Text>
-          </View>
+          <Text style={[styles.title, { color: colors.text }]}>Adet Takibi</Text>
         </View>
-        <Text style={styles.subtitle}>
-          Started on {format(startDate, 'MMM d, yyyy')}
+        <Text style={[styles.subtitle, { color: colors.neutral.darkGray }]}>
+          Henüz aktif bir adet takibi yok
         </Text>
-        <TouchableOpacity style={styles.button} onPress={onEndPress}>
-          <Text style={styles.buttonText}>End Period</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  } else {
-    // No active period
-    let statusMessage = "Track your period";
-    
-    if (periods.length > 0 && userPreferences) {
-      // Calculate next period prediction if we have history
-      const lastPeriod = periods[periods.length - 1];
-      if (lastPeriod.endDate) {
-        const lastEndDate = parseISO(lastPeriod.endDate);
-        const cycleLength = userPreferences.cycleLength || 28; // Default to 28 if not set
-        const expectedNextStart = new Date(lastEndDate);
-        expectedNextStart.setDate(expectedNextStart.getDate() + cycleLength - (userPreferences.typicalDuration || 5));
-        
-        const today = new Date();
-        const daysUntil = differenceInDays(expectedNextStart, today);
-        
-        if (daysUntil > 0) {
-          statusMessage = `Next period in ~${daysUntil} days`;
-        } else if (daysUntil === 0) {
-          statusMessage = "Your period may start today";
-        } else {
-          statusMessage = "Your period may be late";
-        }
-      }
-    }
-    
-    return (
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <Calendar color={COLORS.primary.main} size={24} />
-          <Text style={styles.title}>Period Tracker</Text>
-        </View>
-        <Text style={styles.subtitle}>{statusMessage}</Text>
-        <TouchableOpacity style={styles.button} onPress={onStartPress}>
-          <Text style={styles.buttonText}>Start Period</Text>
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: colors.primary.main }]} 
+          onPress={onStartPress}
+        >
+          <Text style={[styles.buttonText, { color: colors.neutral.white }]}>
+            Adet Takibini Başlat
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
+  
+  const startDate = parseISO(currentPeriod.startDate);
+  const dayCount = differenceInDays(new Date(), startDate) + 1;
+  
+  return (
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text }]}>Aktif Adet</Text>
+        <View style={[styles.badge, { backgroundColor: colors.primary.main }]}>
+          <Text style={[styles.badgeText, { color: colors.neutral.white }]}>
+            {dayCount}. Gün
+          </Text>
+        </View>
+      </View>
+      <Text style={[styles.subtitle, { color: colors.neutral.darkGray }]}>
+        Başlangıç: {format(startDate, 'd MMMM', { locale: tr })}
+      </Text>
+      <TouchableOpacity 
+        style={[styles.button, { backgroundColor: colors.primary.main }]} 
+        onPress={onEndPress}
+      >
+        <Text style={[styles.buttonText, { color: colors.neutral.white }]}>
+          Adeti Bitir
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.background,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginVertical: SPACING.md,
@@ -91,10 +84,8 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
   },
   badge: {
-    backgroundColor: COLORS.primary.main,
     borderRadius: BORDER_RADIUS.round,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
@@ -102,16 +93,13 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.white,
   },
   subtitle: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     marginBottom: SPACING.md,
   },
   button: {
-    backgroundColor: COLORS.primary.main,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -119,7 +107,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: FONT_FAMILY.medium,
-    color: COLORS.neutral.white,
     fontSize: FONT_SIZE.md,
   },
 });

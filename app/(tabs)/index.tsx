@@ -4,12 +4,15 @@ import { router } from 'expo-router';
 import { usePeriodContext } from '@/context/PeriodContext';
 import { PeriodStatusCard } from '@/components/PeriodStatusCard';
 import { TipCard } from '@/components/TipCard';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { Bell } from 'lucide-react-native';
+import { tr } from 'date-fns/locale';
 
 export default function HomeScreen() {
   const { currentPeriod, periods, userPreferences } = usePeriodContext();
+  const { colors } = useTheme();
   
   const handleStartPeriod = () => {
     router.push('/period-actions/start');
@@ -49,7 +52,7 @@ export default function HomeScreen() {
     const cycleLength = userPreferences.cycleLength || 28;
     
     const expectedNextStart = new Date(lastEndDate);
-    expectedNextStart.setDate(expectedNextStart.getDate() + (cycleLength - userPreferences.typicalDuration));
+    expectedNextStart.setDate(expectedNextStart.getDate() + (cycleLength - (userPreferences.typicalDuration || 5)));
     
     return expectedNextStart;
   };
@@ -57,16 +60,16 @@ export default function HomeScreen() {
   const nextPeriod = calculateNextPeriod();
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Period Tracker</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Adet Takipçisi</Text>
         {currentPeriod && (
           <TouchableOpacity 
-            style={styles.checkInButton}
+            style={[styles.checkInButton, { backgroundColor: colors.primary.main }]}
             onPress={handleDailyCheckIn}
           >
-            <Bell size={16} color={COLORS.neutral.white} />
-            <Text style={styles.checkInText}>Check-in</Text>
+            <Bell size={16} color={colors.neutral.white} />
+            <Text style={[styles.checkInText, { color: colors.neutral.white }]}>Kontrol</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -79,39 +82,39 @@ export default function HomeScreen() {
       {currentPeriod && <TipCard />}
       
       {!currentPeriod && nextPeriod && (
-        <View style={styles.nextPeriodCard}>
-          <Text style={styles.nextPeriodTitle}>Next Period</Text>
-          <Text style={styles.nextPeriodDate}>
-            Expected around {format(nextPeriod, 'MMM d, yyyy')}
+        <View style={[styles.nextPeriodCard, { backgroundColor: colors.secondary.light }]}>
+          <Text style={[styles.nextPeriodTitle, { color: colors.secondary.dark }]}>Sonraki Adet</Text>
+          <Text style={[styles.nextPeriodDate, { color: colors.text }]}>
+            Tahmini: {format(nextPeriod, 'dd MMMM yyyy', { locale: tr })}
           </Text>
-          <Text style={styles.nextPeriodInfo}>
-            Based on your typical {userPreferences?.cycleLength || 28}-day cycle
+          <Text style={[styles.nextPeriodInfo, { color: colors.neutral.darkGray }]}>
+            Tipik {userPreferences?.cycleLength || 28} günlük döngüye göre
           </Text>
         </View>
       )}
       
       {periods.length > 0 && (
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Your Stats</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>İstatistiklerin</Text>
           
           <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{periods.length}</Text>
-              <Text style={styles.statLabel}>Periods Tracked</Text>
+            <View style={[styles.statItem, { backgroundColor: colors.neutral.light }]}>
+              <Text style={[styles.statValue, { color: colors.primary.main }]}>{periods.length}</Text>
+              <Text style={[styles.statLabel, { color: colors.neutral.darkGray }]}>Takip Edilen Adet</Text>
             </View>
             
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+            <View style={[styles.statItem, { backgroundColor: colors.neutral.light }]}>
+              <Text style={[styles.statValue, { color: colors.primary.main }]}>
                 {userPreferences?.typicalDuration || '?'}
               </Text>
-              <Text style={styles.statLabel}>Avg. Duration</Text>
+              <Text style={[styles.statLabel, { color: colors.neutral.darkGray }]}>Ort. Süre</Text>
             </View>
             
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+            <View style={[styles.statItem, { backgroundColor: colors.neutral.light }]}>
+              <Text style={[styles.statValue, { color: colors.primary.main }]}>
                 {userPreferences?.cycleLength || '?'}
               </Text>
-              <Text style={styles.statLabel}>Cycle Length</Text>
+              <Text style={[styles.statLabel, { color: colors.neutral.darkGray }]}>Döngü Uzunluğu</Text>
             </View>
           </View>
         </View>
@@ -123,7 +126,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
     padding: SPACING.md,
   },
   header: {
@@ -135,10 +137,8 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xxl,
-    color: COLORS.text,
   },
   checkInButton: {
-    backgroundColor: COLORS.primary.main,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
@@ -147,11 +147,9 @@ const styles = StyleSheet.create({
   },
   checkInText: {
     fontFamily: FONT_FAMILY.medium,
-    color: COLORS.neutral.white,
     marginLeft: SPACING.xs,
   },
   nextPeriodCard: {
-    backgroundColor: COLORS.secondary.light,
     padding: SPACING.lg,
     borderRadius: 12,
     marginVertical: SPACING.md,
@@ -159,19 +157,16 @@ const styles = StyleSheet.create({
   nextPeriodTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.secondary.dark,
     marginBottom: SPACING.xs,
   },
   nextPeriodDate: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   nextPeriodInfo: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
   },
   statsSection: {
     marginTop: SPACING.xl,
@@ -180,7 +175,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.text,
     marginBottom: SPACING.md,
   },
   statsContainer: {
@@ -191,19 +185,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: SPACING.md,
-    backgroundColor: COLORS.neutral.light,
     borderRadius: 12,
     marginHorizontal: SPACING.xs,
   },
   statValue: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xxl,
-    color: COLORS.primary.main,
   },
   statLabel: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.neutral.darkGray,
     textAlign: 'center',
     marginTop: SPACING.xs,
   },

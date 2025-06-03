@@ -9,9 +9,12 @@ import { NotesInput } from '@/components/NotesInput';
 import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
 import { MoodType, FlowLevel, SymptomType } from '@/types/period';
 import { format, parseISO, differenceInDays } from 'date-fns';
+import { tr } from 'date-fns/locale';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function EndPeriodScreen() {
   const { currentPeriod, endPeriod } = usePeriodContext();
+  const { colors } = useTheme();
   const [mood, setMood] = useState<MoodType | undefined>(undefined);
   const [flow, setFlow] = useState<FlowLevel | undefined>('light');
   const [symptoms, setSymptoms] = useState<SymptomType[]>([]);
@@ -47,22 +50,30 @@ export default function EndPeriodScreen() {
       router.replace('/');
     } catch (error) {
       console.error('Error ending period:', error);
-      Alert.alert('Error', 'There was an error ending your period tracking');
+      Alert.alert('Hata', 'Adet takibi bitirilirken bir hata oluştu');
     }
   };
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>End Period Tracking</Text>
-        <Text style={styles.subtitle}>
-          Your period has been active for {dayCount} days (started on {format(startDate, 'MMM d')})
+        <Text style={[styles.title, { color: colors.text }]}>Adet Dönemini Bitir</Text>
+        <Text style={[styles.subtitle, { color: colors.neutral.darkGray }]}>
+          Adet döneminizi bitirmek istediğinizden emin misiniz?
         </Text>
         
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Period Summary</Text>
-          <Text style={styles.summaryText}>
-            You've tracked {currentPeriod.dailyLogs.length} days of this period. Adding final details will help provide better insights.
+        <View style={[styles.summaryCard, { 
+          backgroundColor: colors.neutral.light,
+          borderLeftColor: colors.primary.main 
+        }]}>
+          <Text style={[styles.summaryTitle, { color: colors.text }]}>
+            Adet Özeti
+          </Text>
+          <Text style={[styles.summaryText, { color: colors.neutral.darkGray }]}>
+            Başlangıç: {format(startDate, 'd MMMM yyyy', { locale: tr })}
+          </Text>
+          <Text style={[styles.summaryText, { color: colors.neutral.darkGray }]}>
+            Süre: {dayCount} gün
           </Text>
         </View>
         
@@ -78,21 +89,25 @@ export default function EndPeriodScreen() {
         <NotesInput 
           value={notes} 
           onChangeText={setNotes} 
-          placeholder="How are you feeling now that your period is ending?"
+          placeholder="Adetin biterken nasıl hissediyorsun?"
         />
         
         <TouchableOpacity 
-          style={styles.endButton} 
+          style={[styles.endButton, { backgroundColor: colors.primary.main }]} 
           onPress={handleEndPeriod}
         >
-          <Text style={styles.endButtonText}>End Period</Text>
+          <Text style={[styles.endButtonText, { color: colors.neutral.white }]}>
+            Adeti Bitir
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.cancelButton} 
           onPress={() => router.back()}
         >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: colors.neutral.darkGray }]}>
+            İptal
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -102,7 +117,6 @@ export default function EndPeriodScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.lg,
@@ -110,36 +124,29 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: FONT_SIZE.xl,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   subtitle: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
     marginBottom: SPACING.lg,
   },
   summaryCard: {
-    backgroundColor: COLORS.neutral.light,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.lg,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary.main,
   },
   summaryTitle: {
     fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   summaryText: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
   },
   endButton: {
-    backgroundColor: COLORS.primary.main,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -148,7 +155,6 @@ const styles = StyleSheet.create({
   endButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.lg,
-    color: COLORS.neutral.white,
   },
   cancelButton: {
     paddingVertical: SPACING.md,
@@ -158,6 +164,5 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontFamily: FONT_FAMILY.medium,
     fontSize: FONT_SIZE.md,
-    color: COLORS.neutral.darkGray,
   },
 });

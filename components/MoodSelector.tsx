@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MoodType } from '@/types/period';
-import { COLORS, FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { FONT_FAMILY, FONT_SIZE, SPACING, BORDER_RADIUS } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { Smile, Frown, Meh, Angry, HeartPulse } from 'lucide-react-native';
 
 interface MoodSelectorProps {
@@ -9,59 +10,48 @@ interface MoodSelectorProps {
   onSelectMood: (mood: MoodType) => void;
 }
 
-export const MoodSelector: React.FC<MoodSelectorProps> = ({
-  selectedMood,
-  onSelectMood
-}) => {
-  const moods: { type: MoodType; icon: React.ReactNode; label: string }[] = [
-    { 
-      type: 'happy', 
-      icon: <Smile size={24} color={selectedMood === 'happy' ? COLORS.primary.main : COLORS.neutral.gray} />,
-      label: 'Mutlu'
-    },
-    { 
-      type: 'neutral', 
-      icon: <Meh size={24} color={selectedMood === 'neutral' ? COLORS.primary.main : COLORS.neutral.gray} />,
-      label: 'Nötr'
-    },
-    { 
-      type: 'sad', 
-      icon: <Frown size={24} color={selectedMood === 'sad' ? COLORS.primary.main : COLORS.neutral.gray} />,
-      label: 'Üzgün'
-    },
-    { 
-      type: 'irritable', 
-      icon: <Angry size={24} color={selectedMood === 'irritable' ? COLORS.primary.main : COLORS.neutral.gray} />,
-      label: 'Sinirli'
-    },
-    { 
-      type: 'anxious', 
-      icon: <HeartPulse size={24} color={selectedMood === 'anxious' ? COLORS.primary.main : COLORS.neutral.gray} />,
-      label: 'Endişeli'
-    },
-  ];
-  
+const moods: { type: MoodType; icon: React.FC<{ size: number; color: string }> }[] = [
+  { type: 'happy', icon: Smile },
+  { type: 'sad', icon: Frown },
+  { type: 'neutral', icon: Meh },
+  { type: 'angry', icon: Angry },
+  { type: 'energetic', icon: HeartPulse },
+];
+
+const moodLabels: Record<MoodType, string> = {
+  happy: 'Mutlu',
+  sad: 'Üzgün',
+  neutral: 'Normal',
+  angry: 'Sinirli',
+  energetic: 'Enerjik'
+};
+
+export const MoodSelector: React.FC<MoodSelectorProps> = ({ selectedMood, onSelectMood }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Nasıl hissediyorsun?</Text>
-      <View style={styles.moodsContainer}>
-        {moods.map((mood) => (
+      <Text style={[styles.title, { color: colors.text }]}>Ruh Haliniz</Text>
+      <View style={styles.buttonsContainer}>
+        {moods.map(({ type, icon: Icon }) => (
           <TouchableOpacity
-            key={mood.type}
+            key={type}
             style={[
-              styles.moodButton,
-              selectedMood === mood.type && styles.selectedMood
+              styles.button,
+              { backgroundColor: colors.neutral.light },
+              selectedMood === type && { backgroundColor: colors.secondary.light }
             ]}
-            onPress={() => onSelectMood(mood.type)}
+            onPress={() => onSelectMood(type)}
           >
-            {mood.icon}
-            <Text 
-              style={[
-                styles.moodText,
-                selectedMood === mood.type && styles.selectedMoodText
-              ]}
-            >
-              {mood.label}
+            <Icon 
+              size={24} 
+              color={selectedMood === type ? colors.secondary.dark : colors.neutral.darkGray} 
+            />
+            <Text style={[
+              styles.buttonText,
+              { color: selectedMood === type ? colors.secondary.dark : colors.text }
+            ]}>
+              {moodLabels[type]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -72,36 +62,28 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontFamily: FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.semiBold,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
     marginBottom: SPACING.sm,
   },
-  moodsContainer: {
+  buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
   },
-  moodButton: {
-    alignItems: 'center',
-    padding: SPACING.sm,
+  button: {
+    flex: 1,
+    minWidth: '30%',
+    paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
-    width: '18%',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
-  selectedMood: {
-    backgroundColor: COLORS.primary.light,
-  },
-  moodText: {
-    fontFamily: FONT_FAMILY.regular,
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.neutral.darkGray,
-    marginTop: SPACING.xs,
-    textAlign: 'center',
-  },
-  selectedMoodText: {
-    color: COLORS.primary.dark,
+  buttonText: {
     fontFamily: FONT_FAMILY.medium,
+    fontSize: FONT_SIZE.sm,
   },
 });
