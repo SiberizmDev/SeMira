@@ -1,9 +1,10 @@
 # SeMira - Adet Takip Uygulaması
 
 <p align="center">
-  <img src="assets/screenshots/home.png" alt="Ana Sayfa" width="200"/>
-  <img src="assets/screenshots/calendar.png" alt="Takvim" width="200"/>
-  <img src="assets/screenshots/stats.png" alt="İstatistikler" width="200"/>
+  <img src="assets/screenshots/home.jpg" alt="Ana Sayfa" width="200"/>
+  <img src="assets/screenshots/calendar.jpg" alt="Takvim" width="200"/>
+  <img src="assets/screenshots/stats.jpg" alt="İstatistikler" width="200"/>
+  <img src="assets/screenshots/settings.jpg" alt="Ayarlar" width="200"/>
 </p>
 
 ## 📱 Uygulama Hakkında
